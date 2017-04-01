@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>highlight.js</title>
+
+<link rel="stylesheet" href="./js/styles/rainbow.css">
+<script>
+	function initSnippet() {
+		var snippet = document.querySelector('#snippet pre code');
+		var text = snippet.textContent;
+		document.querySelector('#snippet2 pre code').innerHTML = doHighlight(text, 0);
+	}
+	function doHighlight(text, callerTimes) {
+		var list = [];
+		// meta
+		var re = /(^#![^\n]+sh\s*$)/igm;
+		while ((match = re.exec(text)) != null) {
+			match.type=0;
+			list.push(match);
+		}
+		// comment
+		var re = /(#.*?$)/igm;
+		while ((match = re.exec(text)) != null) {
+			match.type=10;
+			list.push(match);
+		}
+		// 文字列
+		var re = /"((?:\\.|[^\"\\])*)"/igm;
+		while ((match = re.exec(text)) != null) {
+			match.type=20;
+			list.push(match);
+		}
+		// var1
+		var re = /\$[\w\d#@][\w\d_]*/igm;
+		while ((match = re.exec(text)) != null) {
+			match.type=22;
+			list.push(match);
+		}
+		// var2
+		var re = /\$\{(.+?)\}/igm;
+		while ((match = re.exec(text)) != null) {
+			match.type=22;
+			list.push(match);
+		}
+		// keyword
+		var re = /\bif|then|fi\b/gm;
+		while ((match = re.exec(text)) != null) {
+			match.type=30;
+			list.push(match);
+		}
+		// keyword2
+		var re = /\b-ne|-eq\b/gm;
+		while ((match = re.exec(text)) != null) {
+			match.type=30; // とりあえず
+			list.push(match);
+		}
+		// hljs-literal
+		var re = /\btrue|false\b/gm;
+		while ((match = re.exec(text)) != null) {
+			match.type=32;
+			list.push(match);
+		}
+		// buildin
+		var re = /\becho|exit|sqlplus\b/gm;
+		while ((match = re.exec(text)) != null) {
+			match.type=40;
+			list.push(match);
+		}
+		// function
+		var re = /\w[\w\d_]*\s*\(\s*\)\s*\{/igm;
+		while ((match = re.exec(text)) != null) {
+			match.type=50;
+			list.push(match);
+		}
+		// ln
+		var re = /\r\n|\r|\n/igm;
+		while ((match = re.exec(text)) != null) {
+			match.type=60;
+			list.push(match);
+		}
+
+		list.sort(function(a, b){
+			var x = a.index - b.index;
+			if (x != 0) {
+				return x;
+			}
+			return a.type - b.type;
+		});
+		console.log(list);
+		// text = text.replace(/(^#![^\n]+sh\s*$)/igm, '<span class="hljs-meta">$1</span>');
+		// text = text.replace(/(".*?")/igm, '<span class="hljs-string">$1</span>');
+		// text = text.replace(/(#.*?$)/igm, '<span class="hljs-comment">$1</span>');
+
+		var posStr = 0;
+		var posEnd = 0;
+		var result = '';
+		for (var iii = 0; iii < list.length; iii++) {
+			var match = list[iii];
+			if (match.type == 60 && posStr == match.index) {
+				result+='\r\n';
+				posStr = match.index + 1;
+				continue;
+			}
+			if (match.index > posStr) {
+				result += text.substring(posStr, match.index);
+				posStr = match.index;
+				// continue;
+			} else if (match.index == posStr) {
+				//
+			} else {
+				continue;
+			}
+			if (match.type == 0) {
+				result+='<span class="hljs-meta">'+match[0]+'</span>';
+			} else if (match.type == 10) {
+				result+='<span class="hljs-comment">'+match[0]+'</span>';
+			} else if (match.type == 20) {
+				result+='<span class="hljs-string">'+highlight_inner1(match[0])+'</span>';
+			} else if (match.type == 22) {
+				result+='<span class="hljs-variable">'+match[0]+'</span>';
+			} else if (match.type == 30) {
+				result+='<span class="hljs-keyword">'+match[0]+'</span>';
+			} else if (match.type == 32) {
+				result+='<span class="hljs-literal">'+match[0]+'</span>';
+			} else if (match.type == 40) {
+				result+='<span class="hljs-built_in">'+match[0]+'</span>';
+			} else if (match.type == 50) {
+				result+='<span class="hljs-function">'+match[0]+'</span>';
+			} else if (match.type == 60) {
+				result+='\r\n';
+			}
+			posStr = match.index + match[0].length;
+		}
+		// console.log(text);
+		return result;
+	}
+	// 文字列内変数名対応。
+	function highlight_inner1(match1) {
+		var list = [];
+		// var1
+		var re = /\$[\w\d#@][\w\d_]*/igm;
+		while ((match = re.exec(match1)) != null) {
+			list.push(match);
+		}
+		// var2
+		var re = /\$\{(.+?)\}/igm;
+		while ((match = re.exec(match1)) != null) {
+			list.push(match);
+		}
+		if (list.length <= 0) {
+			return match1;
+		}
+		list.sort(function(a, b){
+			return a.index - b.index;
+		});
+		var posStr = 0;
+		var result = '';
+		for (var iii = 0; iii < list.length; iii++) {
+			var match = list[iii];
+			if (match.index > posStr) {
+				result += match1.substring(posStr, match.index);
+				posStr = match.index;
+			}
+			result+='<span class="hljs-variable">'+match[0]+'</span>';
+			posStr = match.index + match[0].length;
+		}
+		if (list.length > 0) {
+			var lastMatch = list[list.length-1];
+			result += match1.substring(lastMatch.index+lastMatch[0].length);
+		}
+		return result;
+	}
+  	addEventListener('load', initSnippet);
+</script>
+</head>
+
+<body>
+<div id="snippet" style="float: left; background-color: #fff; border: 1px solid red; padding: 0; margin: 0;">
+<pre>
+<code class="bash">
+#!/bin/bash
+
+###### "CONFIG"
+###### "CONFIG"
+
+ACCEPTED_HOSTS="/root/.hag_acc$1epted.conf. if "
+BE_VERBOSE=false # koko
+
+. ./conf/conf.sh
+
+if [ "$UID" -ne 0 ]
+then
+ echo "Superuser rights \"required\" if "
+ exit 2
+fi
+
+genApacheConf( ) {
+ echo -e "# Host ${HOME_DIR}$1/$2 :"
+}
+
+#!/bin/bash
+# 機能名：テーブルデータ削除
+#
+# 引数(1):日数
+# 引数(2):種類(1:ログテーブル 2:取込テーブル 3:データテーブル)
+
+#共通環境変数読み込み
+.COMMON.sh
+
+SCRPT_NAME="DEL_TBL.sh"
+
+${SCRPT_SHLOG} ${SCRPT_NAME} "I" "テーブルデータ削除開始 $1 $2"
+
+#日数チェック
+num=`expr "$1" : [0-9]`
+if [[ ! $num -eq 1 ]]
+then
+    ${SCRPT_SHLOG} ${SCRPT_NAME} "E" "引数1が不正です"
+    ${SCRPT_SHLOG} ${SCRPT_NAME} "E" "異常終了"
+    exit 9
+fi
+
+#削除対象テーブル決定
+if [ $2 -eq 1 ]
+then
+    SQL_FILE=$SCRPT_SHELL/LOGTBL_DEL.sql
+elif [ $2 -eq 2 ]
+then
+    SQL_FILE=$SCRPT_SHELL/TORIKOMITBL_DEL1.sql
+elif [ $2 -eq 3 ]
+then
+    SQL_FILE=$SCRPT_SHELL/DTTBL_DEL.sql
+else
+    ${SCRPT_SHLOG} ${SCRPT_NAME} "E" "引数2が不正です"
+    ${SCRPT_SHLOG} ${SCRPT_NAME} "E" "異常終了"
+    exit 9
+fi
+
+#ora_connはuser/pass@host[:port]の構成
+ora_conn=${ORA_CONN}
+#sqlplus起動 ここからEOFまでsqlplus側のコード
+sqlplus -s /nolog &lt;&lt; EOF
+conn $ora_conn
+-- エラー時の戻り値設定
+WHENEVER OSERROR EXIT 9
+WHENEVER SQLERROR EXIT 9
+SET SERVEROUTPUT ON SIZE UNLIMITED
+-- 不必要な項目の表示抑制
+SET NEWPAGE NONE
+SET SPACE 0
+SET TIME OFF
+SET TIMING OFF
+SET ECHO OFF
+SET FEEDBACK OFF
+SET HEADING OFF
+SET PAGESIZE 0
+SET VERIFY OFF
+-- 問い合わせ結果非表示
+SET TERMOUT OFF
+
+-- SQL実行
+@$SQL_FILE $1
+exit COMMIT
+
+EOF
+
+#[正常終了ログ出力]
+${SCRPT_SHLOG} ${SCRPT_ID} I ${MSG_N_END}
+
+exit 0
+</code>
+</pre>
+</div>
+<hr>
+<div style="border: 1px solid black; background-color: #474949; color: #d1d9e1; padding: 0; margin: 0;" id="snippet2">
+<pre>
+<code class="bash">
+
+</code>
+</pre>
+</div>
+</body>
+</html>
