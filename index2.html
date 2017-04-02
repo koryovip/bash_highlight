@@ -73,7 +73,13 @@
 			match.type=50;
 			list.push(match);
 		}
-		// ln
+		// number
+		var re = /\b\d+(\.\d+)?/gm;
+		while ((match = re.exec(text)) != null) {
+			match.type=52;
+			list.push(match);
+		}
+		// bl
 		var re = /\r\n|\r|\n/igm;
 		while ((match = re.exec(text)) != null) {
 			match.type=60;
@@ -126,7 +132,9 @@
 			} else if (match.type == 40) {
 				result+='<span class="hljs-built_in">'+match[0]+'</span>';
 			} else if (match.type == 50) {
-				result+='<span class="hljs-function">'+match[0]+'</span>';
+				result+='<span class="hljs-title">'+match[0]+'</span>';
+			} else if (match.type == 52) {
+				result+='<span class="hljs-number">'+match[0]+'</span>';
 			} else if (match.type == 60) {
 				result+='\r\n';
 			}
