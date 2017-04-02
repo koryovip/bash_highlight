@@ -41,19 +41,19 @@
 			list.push(match);
 		}
 		// var1
-		var re = /\$[\w\d#@][\w\d_]*/igm;
+		var re = /\$[\w\d#@?][\w\d_]*/ig;
 		while ((match = re.exec(text)) != null) {
 			match.type=22;
 			list.push(match);
 		}
 		// var2
-		var re = /\$\{(.+?)\}/igm;
+		var re = /\$\{(.+?)\}/ig;
 		while ((match = re.exec(text)) != null) {
 			match.type=22;
 			list.push(match);
 		}
 		// keyword
-		var re = /\bif|then|fi\b/gm;
+		var re = /\bif|then|elif|else|fi\b/gm;
 		while ((match = re.exec(text)) != null) {
 			match.type=30;
 			list.push(match);
@@ -71,7 +71,7 @@
 			list.push(match);
 		}
 		// buildin
-		var re = /\becho|exit|sqlplus\b/gm;
+		var re = /\becho|exit|sqlplus|cd|pwd|dirname|test\b/gm;
 		while ((match = re.exec(text)) != null) {
 			match.type=40;
 			list.push(match);
@@ -83,7 +83,7 @@
 			list.push(match);
 		}
 		// number
-		var re = /\b\d+(\.\d+)?/gm;
+		var re = /\b\d+(\.\d+)?\b/gm;
 		while ((match = re.exec(text)) != null) {
 			match.type=52;
 			list.push(match);
@@ -118,7 +118,7 @@
 				continue;
 			}
 			if (match.index > posStr) {
-				result += text.substring(posStr, match.index);
+				result += escape(text.substring(posStr, match.index));
 				posStr = match.index;
 				// continue;
 			} else if (match.index == posStr) {
@@ -218,6 +218,10 @@ genApacheConf( ) {
  echo -e "# Host ${HOME_DIR}$1/$2 :"
 }
 
+exit1
+1exit
+1exit2
+
 #!/bin/bash
 # 機能名：テーブルデータ削除
 #
@@ -292,6 +296,52 @@ xxx
 EOF
 
 exit 0
+
+##############################
+
+#!/bin/sh
+. /home/batch_user/.bashrc
+
+# 終了コード：エラー
+RESULT_CD_ERR=255
+
+# ログファイル
+CURRENT=$(cd $(dirname $0) &amp;&amp; pwd)
+DB_SYNC_LOG=$CURRENT/log/connectsqlplus.log
+
+# DB接続
+CONNECT_DB="connect $ORACLE_USER/$ORACLE_PASS@$DB_HOST:$DB_PORT/$DB_NAME"
+
+#  コミット文
+COMMIT_CMD='commit;'
+
+#  SQLファイル実行
+EXEC_SQLFILE="@$SQLFILE"
+
+# DB接続 SQLPLUS ここから
+sqlplus -s /nolog &lt;&lt;EOF &gt;&gt; $DB_SYNC_LOG
+
+--エラー時の例外処理
+whenever oserror exit $RESULT_CD_ERR
+whenever sqlerror exit $RESULT_CD_ERR
+
+-- DB接続
+$CONNECT_DB
+$EXEC_SQLFILE
+$COMMIT_CMD
+quit
+EOF
+# DB切断 SQLPLUS ここまで
+
+# DBエラーチェック
+if test $? = $RESULT_CD_ERR
+then
+    echo "`date '+%Y/%m/%d %T %N'` FATAL DB接続時にエラー発生:$RESULT_CD_ERR]"
+    echo "`date '+%Y/%m/%d %T %N'` FATAL DB接続時にエラー発生:$RESULT_CD_ERR]" >> $DB_SYNC_LOG
+    echo '------------------------------------------------------------------' >> $DB_SYNC_LOG
+    exit $RESULT_CD_ERR
+fi
+
 </code>
 </pre>
 </div>
