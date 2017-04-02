@@ -6,6 +6,9 @@
 
 <link rel="stylesheet" href="./js/styles/rainbow.css">
 <script>
+	function escape(value) {
+    	return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  	}
 	function initSnippet() {
 		var snippet = document.querySelector('#snippet pre code');
 		var text = snippet.textContent;
@@ -32,7 +35,7 @@
 			list.push(match);
 		}
 		// EOF(javascript 正規表現複数行サンプル)
-		var re = /<< EOF$[\s\S]*^EOF/gm;
+		var re = /<<[ ]*EOF$[\s\S]*?^EOF/gm;
 		while ((match = re.exec(text)) != null) {
 			match.type=21;
 			list.push(match);
@@ -165,7 +168,7 @@
 			list.push(match);
 		}
 		if (list.length <= 0) {
-			return match1;
+			return escape(match1);
 		}
 		list.sort(function(a, b){
 			return a.index - b.index;
@@ -283,6 +286,10 @@ EOF
 
 #[正常終了ログ出力]
 ${SCRPT_SHLOG} ${SCRPT_ID} I ${MSG_N_END}
+
+sqlplus -s /nolog &lt;&lt;EOF
+xxx
+EOF
 
 exit 0
 </code>
