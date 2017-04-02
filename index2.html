@@ -53,25 +53,25 @@
 			list.push(match);
 		}
 		// keyword
-		var re = /\bif|then|elif|else|fi\b/gm;
+		var re = /\bif\b|\bthen\b|\belif\b|\belse\b|\bfi\b/gm;
 		while ((match = re.exec(text)) != null) {
 			match.type=30;
 			list.push(match);
 		}
 		// keyword2
-		var re = /\b-ne|-eq\b/gm;
+		var re = /\b-ne\b|\b-eq\b/g;
 		while ((match = re.exec(text)) != null) {
 			match.type=30; // とりあえず
 			list.push(match);
 		}
 		// hljs-literal
-		var re = /\btrue|false\b/gm;
+		var re = /\btrue\b|\bfalse\b/gm;
 		while ((match = re.exec(text)) != null) {
 			match.type=32;
 			list.push(match);
 		}
 		// buildin
-		var re = /\becho|exit|sqlplus|cd|pwd|dirname|test\b/gm;
+		var re = /\becho\b|\bexit\b|\bsqlplus\b|\bcd\b|\bpwd\b|\bdirname\b|\btest\b/gm;
 		while ((match = re.exec(text)) != null) {
 			match.type=40;
 			list.push(match);
