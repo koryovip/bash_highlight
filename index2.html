@@ -31,6 +31,12 @@
 			match.type=20;
 			list.push(match);
 		}
+		// EOF(javascript 正規表現複数行サンプル)
+		var re = /<< EOF$[\s\S]*^EOF/gm;
+		while ((match = re.exec(text)) != null) {
+			match.type=21;
+			list.push(match);
+		}
 		// var1
 		var re = /\$[\w\d#@][\w\d_]*/igm;
 		while ((match = re.exec(text)) != null) {
@@ -123,6 +129,8 @@
 				result+='<span class="hljs-comment">'+match[0]+'</span>';
 			} else if (match.type == 20) {
 				result+='<span class="hljs-string">'+highlight_inner1(match[0])+'</span>';
+			} else if (match.type == 21) {
+				result+='<span class="hljs-eof">'+highlight_inner1(match[0])+'</span>';
 			} else if (match.type == 22) {
 				result+='<span class="hljs-variable">'+match[0]+'</span>';
 			} else if (match.type == 30) {
@@ -184,7 +192,7 @@
 </head>
 
 <body>
-<div id="snippet" style="float: left; background-color: #fff; border: 1px solid red; padding: 0; margin: 0;">
+<div id="snippet" style="overflow: hidden; float: left; background-color: #fff; border: 1px solid red; padding: 0; margin: 0;">
 <pre>
 <code class="bash">
 #!/bin/bash
@@ -280,13 +288,13 @@ exit 0
 </code>
 </pre>
 </div>
-<hr>
-<div style="border: 1px solid black; background-color: #474949; color: #d1d9e1; padding: 0; margin: 0;" id="snippet2">
+<div style="float: left; border: 1px solid red; background-color: #474949; color: #d1d9e1; padding: 0; margin: 0;" id="snippet2">
 <pre>
 <code class="bash">
 
 </code>
 </pre>
 </div>
+<div style="clear: both;"></div>
 </body>
 </html>
